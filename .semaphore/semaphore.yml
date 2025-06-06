@@ -12,6 +12,7 @@ blocks:
           value: 'true'
       prologue:
         commands:
+          - sem-version python 3.13
           - pip install --upgrade pip
           - pip install pipenv
           - 'export PATH=$HOME/.local/bin:$PATH'
