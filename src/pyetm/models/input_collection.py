@@ -1,3 +1,5 @@
+import pandas as pd
+
 from pydantic import BaseModel
 from .input import Input
 
@@ -13,6 +15,17 @@ class InputCollection(BaseModel):
 
     def keys(self):
         return [input.key for input in self.inputs]
+
+    def to_dataframe(self) -> pd.DataFrame:
+        ''' Used for export '''
+        columns = ['unit', 'value', 'default']#, 'min', 'max']
+
+        # Should come from input itself once we know what we want ;)
+        return pd.DataFrame.from_dict(
+            {input.key: [input.unit, input.user, input.default] for input in self.inputs},
+            orient='index',
+            columns=columns
+        )
 
     @classmethod
     def from_json(cls, data):
