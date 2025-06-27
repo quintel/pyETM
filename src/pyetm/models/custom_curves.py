@@ -27,10 +27,10 @@ class CustomCurve(BaseModel):
         result = download_curve(client, scenario, self.key)
 
         if result.success:
-            curve = pd.read_csv(result.data, index_col=False, dtype=float)
+            curve = pd.read_csv(result.data, header=None, index_col=False, dtype=float).squeeze('columns').dropna(how='all')
             self.file_path = get_settings().path_to_tmp(str(scenario.id)) / f'{self.key}.csv'
             curve.to_csv(self.file_path, index=False)
-            return curve
+            return curve.rename(self.key)
         else:
             # TODO: log the error on the object, so we can collect a bunch of
             # them to give back to the user!
@@ -42,8 +42,8 @@ class CustomCurve(BaseModel):
             return
 
         return pd.read_csv(
-            self.file_path, index_col=False, dtype=float
-        ).squeeze('columns').dropna(how='all')
+            self.file_path, header=None, index_col=False, dtype=float
+        ).squeeze('columns').dropna(how='all').rename(self.key)
 
     def remove(self):
         '''TODO: destroy file and remove path'''
@@ -57,6 +57,10 @@ class CustomCurves(BaseModel):
 
     def __iter__(self):
         yield from iter(self.curves)
+
+    def is_attached(self, curve_name: str) -> bool:
+        ''' Returns true if that curve is attached '''
+        return any((curve_name == key for key in self.attached_keys()))
 
     def attached_keys(self):
         ''' Returns the keys of attached curves '''
